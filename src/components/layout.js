@@ -1,5 +1,6 @@
 import React from "react"
 import { Link } from "gatsby"
+import logo from "../../static/logo.png" // Tell Webpack this JS file uses this image
 
 import { rhythm, scale } from "../utils/typography"
 
@@ -8,33 +9,32 @@ class Layout extends React.Component {
     const { location, title, children } = this.props
     const rootPath = `${__PATH_PREFIX__}/`
     let header
+    let footer
 
     if (location.pathname === rootPath) {
       header = (
-        <h1
-          style={{
-            ...scale(1.5),
-            marginBottom: rhythm(1.5),
-            marginTop: 0,
-          }}
-        >
+        <div>
           <Link
             style={{
               boxShadow: `none`,
               textDecoration: `none`,
               color: `inherit`,
+              marginBottom: 0,
+              marginTop: 0
             }}
             to={`/`}
           >
-            {title}
+          <img src={logo} alt="Logo" style={{
+                      marginBottom: 0,
+          }}/>
           </Link>
-        </h1>
+          </div>
       )
     } else {
       header = (
         <h3
           style={{
-            fontFamily: `Montserrat, sans-serif`,
+            fontFamily: `Noto Sans, sans-serif`,
             marginTop: 0,
           }}
         >
@@ -46,10 +46,25 @@ class Layout extends React.Component {
             }}
             to={`/`}
           >
-            {title}
+               <img src={logo} alt="Logo" />
           </Link>
         </h3>
       )
+    }
+
+    if (location.pathname === rootPath) {
+      footer = (
+        <div></div>
+      )
+    } else {
+    footer = (
+      <p       style={{
+        fontFamily: `Inconsolata, monospace`,
+        fontSize: '1.0em',
+        marginTop: 0,
+      }}> Made with 💙 by <a href="https://twitter.com/askmeegs">Megan O'Keefe</a> — <a rel="license" href="http://creativecommons.org/licenses/by/3.0/">License</a>
+</p>
+    )
     }
     return (
       <div
@@ -62,11 +77,7 @@ class Layout extends React.Component {
       >
         <header>{header}</header>
         <main>{children}</main>
-        <footer>
-          © {new Date().getFullYear()}, Built with
-          {` `}
-          <a href="https://www.gatsbyjs.org">Gatsby</a>
-        </footer>
+        <footer>{footer}</footer>
       </div>
     )
   }

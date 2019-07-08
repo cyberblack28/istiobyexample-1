@@ -1,21 +1,29 @@
 ---
-title: Hello World
+title: canary deployment
 date: "2015-05-01T22:12:03.284Z"
 ---
 
-This is my first post on my new fake blog! How exciting!
+A canary deployment is a strategy for safely rolling out a new version of a service. With Istio, you can use percentage-based [traffic splitting](https://istio.io/docs/concepts/traffic-management/#routing-versions) to direct a small amount of traffic to the new version. Then you can run a [canary analysis](https://cloud.google.com/blog/products/devops-sre/canary-analysis-lessons-learned-and-best-practices-from-google-and-waze) on v2 (like check latency and error rate), and finally direct more traffic at the new version until it's serving all traffic.
 
-I'm sure I'll write a lot more interesting things in the future.
+![Diagram](./canary_diagram.png)
 
-Oh, and here's a great quote from this Wikipedia on
-[salted duck eggs](http://en.wikipedia.org/wiki/Salted_duck_egg).
 
-> A salted duck egg is a Chinese preserved food product made by soaking duck
-> eggs in brine, or packing each egg in damp, salted charcoal. In Asian
-> supermarkets, these eggs are sometimes sold covered in a thick layer of salted
-> charcoal paste. The eggs may also be sold with the salted paste removed,
-> wrapped in plastic, and vacuum packed. From the salt curing process, the
-> salted duck eggs have a briny aroma, a gelatin-like egg white and a
-> firm-textured, round yolk that is bright orange-red in color.
-
-![Chinese Salty Egg](./salty_egg.jpg)
+```YAML
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: helloworld
+spec:
+  hosts:
+    - helloworld.svc.cluster.local
+  http:
+  - route:
+    - destination:
+        host: helloworld
+        subset: v1
+      weight: 90
+    - destination:
+        host: helloworld
+        subset: v2
+      weight: 10
+ ```

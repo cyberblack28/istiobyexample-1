@@ -4,6 +4,8 @@ import { Link, graphql } from "gatsby"
 import Layout from "../components/layout"
 import SEO from "../components/seo"
 import { rhythm, scale } from "../utils/typography"
+import  './prism-vs.css'
+
 
 class ExampleTemplate extends React.Component {
   render() {
@@ -15,16 +17,16 @@ class ExampleTemplate extends React.Component {
       <Layout location={this.props.location} title={siteTitle}>
         <SEO
           title={post.frontmatter.title}
-          description={post.frontmatter.description || post.excerpt}
         />
-        <h1
+        <h2
           style={{
-            marginTop: rhythm(1),
+            marginTop: 0,
             marginBottom: 0,
+            fontFamily: `Noto Sans, sans-serif`,
           }}
         >
           {post.frontmatter.title}
-        </h1>
+        </h2>
         <p
           style={{
             ...scale(-1 / 5),
@@ -32,14 +34,15 @@ class ExampleTemplate extends React.Component {
             marginBottom: rhythm(1),
           }}
         >
-          {post.frontmatter.date}
         </p>
-        <div dangerouslySetInnerHTML={{ __html: post.html }} />
-        <hr
-          style={{
-            marginBottom: rhythm(1),
-          }}
-        />
+        <div dangerouslySetInnerHTML={{ __html: post.html }}
+               style={{
+                marginTop: 0,
+                marginBottom: 0,
+                fontFamily: `Noto Sans, sans-serif`,
+              }}>
+        </div>
+
 
         <ul
           style={{
@@ -87,7 +90,6 @@ export const pageQuery = graphql`
       frontmatter {
         title
         date(formatString: "MMMM DD, YYYY")
-        description
       }
     }
   }
