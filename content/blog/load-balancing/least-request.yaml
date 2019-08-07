@@ -1,0 +1,9 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: auth-load-balancer
+spec:
+  host: auth.default.svc.cluster.local
+  trafficPolicy:
+      loadBalancer:
+        simple: LEAST_CONN

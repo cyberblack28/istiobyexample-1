@@ -50,6 +50,7 @@ spec:
     metadata:
       labels:
         app: auth
+        mylabel: regular
     spec:
       terminationGracePeriodSeconds: 5
       restartPolicy: Always
@@ -75,3 +76,30 @@ spec:
   - name: http
     port: 80
     targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: auth-magic
+spec:
+  selector:
+    matchLabels:
+      app: auth
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: auth
+        mylabel: magic
+    spec:
+      terminationGracePeriodSeconds: 5
+      restartPolicy: Always
+      containers:
+      - name: main
+        image: gcr.io/mokeefe/echo:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ECHO
+          value: "🦄✨ auth magic"
+        imagePullPolicy: Always
