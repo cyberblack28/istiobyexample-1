@@ -1,0 +1,130 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: render
+spec:
+  selector:
+    matchLabels:
+      app: render
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: render
+    spec:
+      terminationGracePeriodSeconds: 5
+      restartPolicy: Always
+      containers:
+      - name: main
+        image: gcr.io/mokeefe/echo:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ECHO
+          value: "🎦 render"
+        imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: render
+spec:
+  type: ClusterIP
+  selector:
+    app: render
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: encode-prod
+spec:
+  selector:
+    matchLabels:
+      app: encode-prod
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: encode-prod
+        version: prod
+    spec:
+      terminationGracePeriodSeconds: 5
+      restartPolicy: Always
+      containers:
+      - name: main
+        image: gcr.io/mokeefe/echo:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ECHO
+          value: "✅ encode-prod"
+        imagePullPolicy: Always
+---
+# apiVersion: v1
+# kind: Service
+# metadata:
+#   name: encode
+# spec:
+#   type: ClusterIP
+#   selector:
+#     app: encode
+#   ports:
+#   - name: http
+#     port: 80
+#     targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: encode-prod
+spec:
+  type: ClusterIP
+  selector:
+    app: encode-prod
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: encode-test
+spec:
+  type: ClusterIP
+  selector:
+    app: encode-test
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: encode-test
+spec:
+  selector:
+    matchLabels:
+      app: encode-test
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: encode-test
+        version: test
+    spec:
+      terminationGracePeriodSeconds: 5
+      restartPolicy: Always
+      containers:
+      - name: main
+        image: gcr.io/mokeefe/echo:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ECHO
+          value: "⚠️ encode test"
+        imagePullPolicy: Always

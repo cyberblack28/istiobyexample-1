@@ -1,0 +1,48 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: encode
+spec:
+  host: encode
+  subsets:
+  - name: prod
+    labels:
+      version: prod
+  - name: test
+    labels:
+      version: test
+# ---
+# apiVersion: networking.istio.io/v1alpha3
+# kind: VirtualService
+# metadata:
+#   name: encode-canary
+# spec:
+#   hosts:
+#   - encode
+#   http:
+#   - route:
+#     - destination:
+#         host: encode
+#         subset: prod
+#       weight: 5
+#     - destination:
+#         host: encode
+#         subset: test
+#       weight: 95
+# ---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: encode-mirror
+spec:
+  hosts:
+    - encode
+  http:
+  - route:
+    - destination:
+        host: encode
+        subset: prod
+      weight: 100
+    mirror:
+      host: encode
+      subset: test

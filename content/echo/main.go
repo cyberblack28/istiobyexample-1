@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"net/http"
 	"os"
 )
@@ -18,5 +19,6 @@ func main() {
 }
 
 func HelloServer(w http.ResponseWriter, r *http.Request) {
+	log.Println("received GET request /")
 	fmt.Fprintf(w, "%s - %s!", echo, r.URL.Path[1:])
 }

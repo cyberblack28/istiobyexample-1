@@ -32,7 +32,7 @@ spec:
   principalBinding: USE_ORIGIN
 ```
 
-
+To learn more and try interactive examples, see the [Istio docs](https://istio.io/docs/tasks/security/authn-policy/#end-user-authentication) and the [istio-samples repo](https://github.com/GoogleCloudPlatform/istio-samples/tree/master/security-intro#add-end-user-jwt-authentication).
 
 
 
