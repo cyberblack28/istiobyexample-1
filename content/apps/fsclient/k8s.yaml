@@ -1,0 +1,47 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: fsclient
+spec:
+  type: ClusterIP
+  selector:
+    app: fsclient
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fsclient
+spec:
+  selector:
+    matchLabels:
+      app: fsclient
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: fsclient
+    spec:
+      containers:
+      - name: main
+        image: gcr.io/mokeefe/fsclient:latest
+        ports:
+        - containerPort: 8080
+        imagePullPolicy: Always
+        volumeMounts:
+        - name: service-account-credentials-volume
+          mountPath: /etc/gcp
+          readOnly: true
+        env:
+        - name: GOOGLE_APPLICATION_CREDENTIALS
+          value: /etc/gcp/sa_credentials.json
+      volumes:
+      - name: service-account-credentials-volume
+        secret:
+          secretName: my-data-service-account-credentials
+          items:
+          - key: sa_json
+            path: sa_credentials.json

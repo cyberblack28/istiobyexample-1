@@ -1,0 +1,13 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: fs
+spec:
+  hosts:
+  - firestore.googleapis.com
+  tcp:
+  - route:
+    - destination:
+        host: hellosvc
+        port:
+          number: 80
