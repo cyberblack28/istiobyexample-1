@@ -27,7 +27,7 @@ We'll add `targets` for [each of the Istio components](https://istio.io/docs/tas
         regex: istio-pilot;http-monitoring
 ```
 
-See [configmap.yaml]() for a full example.
+See [configmap.yaml](https://github.com/askmeegs/istiobyexample/blob/888a7b5c573c9ba6bf2c0e046e44bf4f8d8d2506/content/blog/prometheus/configmap.yaml) for a full example.
 
 Second, **update your Prometheus deployment** to mount Istio's certificates into Prometheus. This allows Prometheus to scrape Istio workloads when mutual TLS is enabled. To do this, mount in the `istio.default` secret into your Prometheus deployment YAML:
 
@@ -43,7 +43,7 @@ Second, **update your Prometheus deployment** to mount Istio's certificates into
             secretName: istio.default
 ```
 
-See [deployment.yaml]() for a complete example.
+See [deployment.yaml](https://github.com/askmeegs/istiobyexample/blob/888a7b5c573c9ba6bf2c0e046e44bf4f8d8d2506/content/blog/prometheus/deployment.yaml) for the full example.
 
 Once we deploy Prometheus with this new configuration, we have a Deployment and a Service running in a separate `monitoring` namespace:
 
