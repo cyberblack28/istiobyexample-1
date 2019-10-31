@@ -1,0 +1,73 @@
+##################################################################################################
+# loadgen service - central
+##################################################################################################
+apiVersion: v1
+kind: Service
+metadata:
+  name: loadgen
+  labels:
+    app: loadgen
+spec:
+  ports:
+  - port: 80
+    name: http
+  selector:
+    app: loadgen
+---
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: loadgen
+spec:
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: loadgen
+    spec:
+      containers:
+      - name: loadgen
+        image: gcr.io/megandemo/loadgen:latest
+        imagePullPolicy: Always
+---
+##################################################################################################
+# echo service - central
+##################################################################################################
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: echo
+spec:
+  selector:
+    matchLabels:
+      app: echo
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: echo
+    spec:
+      terminationGracePeriodSeconds: 5
+      restartPolicy: Always
+      containers:
+      - name: main
+        image: gcr.io/megandemo/echo:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ECHO
+          value: "✨ Hello World! - CENTRAL"
+        imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: echo
+spec:
+  type: ClusterIP
+  selector:
+    app: echo
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
