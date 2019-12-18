@@ -1,0 +1,81 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  namespace: ux
+spec:
+  selector:
+    matchLabels:
+      app: frontend
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: frontend
+    spec:
+      terminationGracePeriodSeconds: 5
+      restartPolicy: Always
+      containers:
+      - name: main
+        image: gcr.io/megandemo/echo:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ECHO
+          value: "🏗 Welcome to FooCorp - Public Site"
+        imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend
+  namespace: ux
+spec:
+  type: ClusterIP
+  selector:
+    app: frontend
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: inventory
+  namespace: corp-services
+spec:
+  selector:
+    matchLabels:
+      app: inventory
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: inventory
+    spec:
+      terminationGracePeriodSeconds: 5
+      restartPolicy: Always
+      containers:
+      - name: main
+        image: gcr.io/megandemo/echo:latest
+        ports:
+        - containerPort: 8080
+        env:
+        - name: ECHO
+          value: "🛠FooCorp - Inventory [INTERNAL]"
+        imagePullPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: inventory
+  namespace: corp-services
+spec:
+  type: ClusterIP
+  selector:
+    app: inventory
+  ports:
+  - name: http
+    port: 80
+    targetPort: 8080

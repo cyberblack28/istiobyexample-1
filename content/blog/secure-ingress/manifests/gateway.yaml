@@ -1,0 +1,27 @@
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: foocorp-gateway
+  namespace: default
+spec:
+  selector:
+    istio: ingressgateway # use istio default ingress gateway
+  servers:
+  - port:
+      number: 443
+      name: https-frontend
+      protocol: HTTPS
+    tls:
+      mode: MUTUAL
+      credentialName: "frontend-credential"
+    hosts:
+    - "frontend.foocorp.com"
+  - port:
+      number: 443
+      name: https-inventory
+      protocol: HTTPS
+    tls:
+      mode: MUTUAL
+      credentialName: "inventory-credential"
+    hosts:
+    - "inventory.foocorp.com"
