@@ -28,7 +28,7 @@ metadata:
   name: default
   namespace: istio-system
 spec:
-  host: *.local
+  host: "*.local"
   trafficPolicy:
     tls:
       mode: ISTIO_MUTUAL
