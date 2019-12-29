@@ -9,7 +9,7 @@ Istio supports TLS ingress by mounting certs and keys into the Ingress Gateway, 
 
 Istio supports securing the Ingress Gateway through two methods. The first is through [file mount](https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-mount/), where you generate certs and keys for the IngressGateway, then mount them manually into the IngressGateway as a Kubernetes Secret. The second way is through the [Secrets Discovery Service](https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-sds/) (SDS), an agent that runs in the IngressGateway pod, alongside the Istio proxy. The SDS agent  monitors the `istio-system` namespace for new secrets, and mounts them into the Gateway's proxy on your behalf. Like the file mount method, SDS supports both server-side and mutual TLS.
 
-Let's see how to set up the Ingress Gateway with mutual HTTPS authentication for two backend services.
+Let's see how to use the SDS method to configure the Ingress Gateway with mutual HTTPS authentication.
 
 ![](images/arch.png)
 
