@@ -1,28 +1,6 @@
-<!DOCTYPE html>
-<html><meta charset="utf-8"><meta name="generator" content="Hugo 0.62.0" /><link href="https://fonts.googleapis.com/css?family=Chivo|Fira+Code|Noto+Sans&display=swap" rel="stylesheet">
-
-<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="color-scheme" content="light only">
-<meta name="supported-color-schemes" content="light only"><title>Secure Ingress&nbsp;&ndash;&nbsp;Istio By Example</title><link rel="stylesheet" href="/css/core.min.a2b0db5bf0afce1da6725110f042601dea9e43c953c01ef4c0d25533fd296c544b10b9e7c97171f868967c58bbf22048.css" integrity="sha384-orDbW/Cvzh2mclEQ8EJgHeqeQ8lTwB70wNJVM/0pbFRLELnnyXFx&#43;GiWfFi78iBI"><body>
-    <div class="base-body max-width"><section id="header" class="header max-body-width">
-    <p><a class="home" href="/"><img class="site-logo" src="/images/istio-logo.png" alt />
-            <span class="site-name">Istio By Example</span></a></p>
-</section><div id="content" class="flex-body max-body-width"><section class="article-header">
-    <h1>Secure Ingress</h1>
-</section>
-<div class="flex-body">
-<article class="markdown-body"><p>If you're running workloads in a Kubernetes cluster, it's likely that some need to be exposed outside of the cluster. The <a href="/ingress">Istio Ingress Gateway</a> is a customizable proxy that can route inbound traffic for one or many backend hosts. But what about securing ingress traffic with HTTPS?</p>
-<p>Istio supports TLS ingress by mounting certs and keys into the Ingress Gateway, allowing you to securely route inbound traffic to your in-cluster Services. When you set up secure ingress with Istio, the Ingress Gateway handles all TLS operations (handshake, certs/keys exchange), allowing you to decouple TLS from your application code. Further, using the Ingress Gateway for TLS traffic allows you to centralize and automate the management of certs and keys across your organization.</p>
-<p>Istio supports securing the Ingress Gateway through two methods. The first is through <a href="https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-mount/"target="_blank">file mount</a>, where you generate certs and keys for the IngressGateway, then mount them manually into the IngressGateway as a Kubernetes Secret. The second way is through the <a href="https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-sds/"target="_blank">Secrets Discovery Service</a> (SDS), an agent that runs in the IngressGateway pod, alongside the Istio proxy. The SDS agent  monitors the <code>istio-system</code> namespace for new secrets, and mounts them into the Gateway's proxy on your behalf. Like the file mount method, SDS supports both server-side and mutual TLS.</p>
-<p>Let's see how to use the SDS method to configure the Ingress Gateway with mutual HTTPS authentication.</p>
-<p><a target="_blank" rel="noopener noreferrer" href="/images/secure-ingress-arch.png"><img class="img" src="/images/secure-ingress-arch.png"
-        alt/></a></p>
-<p>Here, a construction materials company called FooCorp runs one production Kubernetes cluster. One team, <code>ux</code>, runs a customer-facing web <code>frontend</code>. The other, <code>corp-services</code>, runs an internal-facing <code>inventory</code> for supply chain tracking. Both services have their own <code>foocorp</code> subdomain, and the security team has mandated that every service has its own certs and keys. Let's walk through the configuration of secure ingress on this cluster.</p>
-<p>First, we'll install Istio, enabling the [global SDS ingress](<a href="https://istio.io/docs/reference/config/installation-options/#gateways-options">https://istio.io/docs/reference/config/installation-options/#gateways-options</a> option) option. When we enable this, the Istio <code>ingress-gateway</code> pod will have two containers, <code>istio-proxy</code> (Envoy) and <code>ingress-sds</code>, which is the Secrets Discovery agent:</p>
-<pre><code>istio-ingressgateway-6f7d65d984-m2zmn     2/2     Running     0          44s
-</code></pre><p>Then we'll create two namespaces, <code>ux</code> and <code>corp-services</code>, and label both for Istio sidecar proxy injection. Next, we'll apply Deployments and Services for the <code>frontend</code> (<code>ux</code> namespace) and the <code>inventory</code> (<code>corp-services</code> namespace).</p>
-<p>Now, we're ready to generate certs and keys for two domains, <code>frontend.foocorp.com</code> and <code>inventory.foocorp.com</code>. (Note: you don't need to purchase domain names to try this out - we'll test with the <code>host</code> header in a few steps.) We generate Kubernetes secrets from these keys:</p>
-<pre><code>kubectl create -n istio-system secret generic frontend-credential  \
+<!doctype html><html><head><meta charset=utf-8><title>セキュアなIngress&nbsp;&ndash;&nbsp;Istio By Example (ja)</title><link href="https://fonts.googleapis.com/css?family=Chivo|Fira+Code|Noto+Sans&display=swap" rel=stylesheet><link rel="shortcut icon" href=../images/spider-web.png><link rel=stylesheet href=https://istiobyexample-ja.github.io/istiobyexample/css/core.min.1ec2f555efc6ec0b36a9bbdf72319cf586f948899f24ab0ef5c93c82bbc7987b1eb704efe0b3a4dad22677058a40e6f6.css integrity=sha384-HsL1Ve/G7As2qbvfcjGc9Yb5SImfJKsO9ck8grvHmHsetwTv4LOk2tImdwWKQOb2><meta name=generator content="Hugo 0.64.0"><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><meta name=color-scheme content="light only"><meta name=supported-color-schemes content="light only"><meta property="og:title" content="セキュアなIngress"><meta property="og:description" content="Kubernetesクラスター上でワークロードを実行している場合、その一部をクラスターの外部に公開したくなることがあるでしょう。Istio Ingress"><meta property="og:type" content="article"><meta property="og:url" content="https://istiobyexample-ja.github.io/istiobyexample/secure-ingress/"><meta property="og:image" content="https://istiobyexample-ja.github.io/istiobyexample/images/opengraph.png"><meta property="article:published_time" content="2019-12-31T00:00:00+00:00"><meta property="article:modified_time" content="2020-04-05T18:10:01+09:00"><meta name=twitter:card content="summary_large_image"><meta name=twitter:image content="https://istiobyexample-ja.github.io/istiobyexample/images/opengraph.png"><meta name=twitter:title content="セキュアなIngress"><meta name=twitter:description content="Kubernetesクラスター上でワークロードを実行している場合、その一部をクラスターの外部に公開したくなることがあるでしょう。Istio Ingress"></head><body><div class="base-body max-width"><section id=header class="header max-body-width"><p><a class=home href=../><img class=site-logo src=../images/istio-logo.png alt>
+<span class=site-name>Istio By Example</span></a></p><p>本サイトは <a href=https://istiobyexample.dev>Istio By Example</a> の和訳です</p></section><div id=content class="flex-body max-body-width"><section class=article-header><h1 class=article-title>セキュアなIngress</h1></section><div class=flex-body><article class=markdown-body><p>Kubernetesクラスター上でワークロードを実行している場合、その一部をクラスターの外部に公開したくなることがあるでしょう。<a href=../ingress>Istio Ingress Gateway</a>は、1つまたは複数のバックエンドホストの内向けトラフィックをルーティングできるカスタマイズ可能なプロキシです。しかし、HTTPSを用いたセキュアなIngressトラフィックを受け付けるにはどうすれば良いでしょうか？</p><p>Istioは、証明書と鍵をIngress GatewayにマウントすることでTLS Ingressをサポートし、内向けのトラフィックをクラスター内サービスに安全にルーティングできるようにします。Istioでセキュアなイングレスを設定すると、Ingress GatewayがすべてのTLS操作（ハンドシェイク、証明書/鍵交換）を処理し、アプリケーションコードからTLSを切り離すことができます。さらに、TLSトラフィックにIngress Gatewayを使用すると、組織全体の証明書と鍵の管理を一元化および自動化できます。</p><p>Istioは、2つの方法によるIngress Gatewayの保護をサポートしています。 1つは<a href=https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-mount/ target=_blank>ファイルマウント</a>による方法で、IngressGatewayの証明書と鍵を生成し、KubernetesのSecretとして手動でIngressGatewayにマウントします。2つ目の方法は、IngressGateway PodでIstioプロキシと一緒に実行されるエージェントである<a href=https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-sds/ target=_blank>Secrets Discovery Service</a>（SDS）を使用する方法です。SDSエージェントは istio-system ネームスペースを監視して新しいシークレットを探し、ユーザーに代わってそれらをゲートウェイのプロキシにマウントします。ファイルマウント方式と同様に、SDSはサーバーサイドと相互TLSの両方をサポートします。</p><p>SDSメソッドを使用して、相互HTTPS認証でIngress Gatewayを構成する方法を見てみましょう。</p><p><a target=_blank rel="noopener noreferrer" href=../images/secure-ingress-arch.png><img class=img src=../images/secure-ingress-arch.png alt></a></p><p>ここでは、FooCorpと呼ばれる建設資材企業が1つのKubernetesクラスターを運用しています。<code>ux</code> という1つのチームが、顧客向けのWeb <code>frontend</code> サービスを実行しています。もう1つは <code>corp-services</code> で、内部向けの <code>inventory</code> サービスを実行してサプライチェーンを追跡します。どちらのサービスにも独自の <code>foocorp</code> サブドメインがあり、セキュリティチームはすべてのサービスに独自の証明書と鍵を持たせることを義務付けています。このクラスターでのセキュアな入力の構成を見ていきましょう。</p><p>まず、<a href=https://istio.io/docs/reference/config/installation-options/#gateways-options target=_blank>global SDS ingress</a>オプションを有効にしてIstioをインストールします。（SDS ingressの有効化はインストールオプションです）これを有効にすると、Istio <code>ingress-gateway</code> Podには、2つのコンテナー、<code>istio-proxy</code>（Envoy）と <code>ingress-sds</code>（Secrets Discoveryエージェント）が立てられます。:</p><pre><code>istio-ingressgateway-6f7d65d984-m2zmn     2/2     Running     0          44s
+</code></pre><p>次に、<code>ux</code> と <code>corp-services</code> という2つのネームスペースを作成し、両方にIstioサイドカープロキシインジェクション用のラベルを付けます。次に、<code>frontend</code>（<code>ux</code> namespace）と<code>inventory</code>（<code>corp-services</code> namespace）にDeploymentとServiceを作成します。</p><p>これで、<code>frontend.foocorp.com</code> と <code>inventory.foocorp.com</code> という2つのドメインの証明書と鍵を生成する準備が整いました。（注：これを試すためにドメイン名を購入する必要はありません。以降のステップでは、<code>host</code> ヘッダーを使用してテストします。）これらの鍵からKubernetes Secretを生成します。:</p><pre><code>kubectl create -n istio-system secret generic frontend-credential  \
 --from-file=key=frontend.foocorp.com/3_application/private/frontend.foocorp.com.key.pem \
 --from-file=cert=frontend.foocorp.com/3_application/certs/frontend.foocorp.com.cert.pem \
 --from-file=cacert=frontend.foocorp.com/2_intermediate/certs/ca-chain.cert.pem
@@ -31,78 +9,73 @@ kubectl create -n istio-system secret generic inventory-credential  \
 --from-file=key=inventory.foocorp.com/3_application/private/inventory.foocorp.com.key.pem \
 --from-file=cert=inventory.foocorp.com/3_application/certs/inventory.foocorp.com.cert.pem \
 --from-file=cacert=inventory.foocorp.com/2_intermediate/certs/ca-chain.cert.pem
-</code></pre><p>Now, we're ready to expose <code>frontend</code> and <code>inventory</code> with Istio resources. First, create a <code>Gateway</code> resource, punching port <code>443</code> for HTTPS traffic. Note that <code>mode: MUTUAL</code> indicates that we're enforcing mutual TLS for inbound traffic. And for each service, we specify two different sets of credentials, corresponding to the Secrets we just created.</p>
-<div class="highlight"><pre class="chroma"><code class="language-YAML" data-lang="YAML">apiVersion<span class="p">:</span><span class="w"> </span>networking.istio.io/v1alpha3<span class="w">
-</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>Gateway<span class="w">
-</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
-</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>foocorp-gateway<span class="w">
-</span><span class="w">  </span>namespace<span class="p">:</span><span class="w"> </span>default<span class="w">
-</span><span class="w"></span>spec<span class="p">:</span><span class="w">
-</span><span class="w">  </span>selector<span class="p">:</span><span class="w">
-</span><span class="w">    </span>istio<span class="p">:</span><span class="w"> </span>ingressgateway<span class="w"> </span><span class="c"># use istio default ingress gateway</span><span class="w">
-</span><span class="w">  </span>servers<span class="p">:</span><span class="w">
-</span><span class="w">  </span>-<span class="w"> </span>port<span class="p">:</span><span class="w">
-</span><span class="w">      </span>number<span class="p">:</span><span class="w"> </span><span class="m">443</span><span class="w">
-</span><span class="w">      </span>name<span class="p">:</span><span class="w"> </span>https-frontend<span class="w">
-</span><span class="w">      </span>protocol<span class="p">:</span><span class="w"> </span>HTTPS<span class="w">
-</span><span class="w">    </span>tls<span class="p">:</span><span class="w">
-</span><span class="w">      </span>mode<span class="p">:</span><span class="w"> </span>MUTUAL<span class="w">
-</span><span class="w">      </span>credentialName<span class="p">:</span><span class="w"> </span><span class="s2">&#34;frontend-credential&#34;</span><span class="w">
-</span><span class="w">    </span>hosts<span class="p">:</span><span class="w">
-</span><span class="w">    </span>-<span class="w"> </span><span class="s2">&#34;frontend.foocorp.com&#34;</span><span class="w">
-</span><span class="w">  </span>-<span class="w"> </span>port<span class="p">:</span><span class="w">
-</span><span class="w">      </span>number<span class="p">:</span><span class="w"> </span><span class="m">443</span><span class="w">
-</span><span class="w">      </span>name<span class="p">:</span><span class="w"> </span>https-inventory<span class="w">
-</span><span class="w">      </span>protocol<span class="p">:</span><span class="w"> </span>HTTPS<span class="w">
-</span><span class="w">    </span>tls<span class="p">:</span><span class="w">
-</span><span class="w">      </span>mode<span class="p">:</span><span class="w"> </span>MUTUAL<span class="w">
-</span><span class="w">      </span>credentialName<span class="p">:</span><span class="w"> </span><span class="s2">&#34;inventory-credential&#34;</span><span class="w">
-</span><span class="w">    </span>hosts<span class="p">:</span><span class="w">
-</span><span class="w">    </span>-<span class="w"> </span><span class="s2">&#34;inventory.foocorp.com&#34;</span><span class="w">
-</span></code></pre></div><p>Next, create two Istio VirtualServices to handle routing from the Gateway. Since both services are mapped to port <code>443</code> in the Gateway, we'll use the <code>host</code> header (or a domain name) to specify the backend service we're requesting.</p>
-<div class="highlight"><pre class="chroma"><code class="language-YAML" data-lang="YAML">apiVersion<span class="p">:</span><span class="w"> </span>networking.istio.io/v1alpha3<span class="w">
-</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>VirtualService<span class="w">
-</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
-</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>frontend<span class="w">
-</span><span class="w"></span>spec<span class="p">:</span><span class="w">
-</span><span class="w">  </span>hosts<span class="p">:</span><span class="w">
-</span><span class="w">  </span>-<span class="w"> </span><span class="s2">&#34;frontend.foocorp.com&#34;</span><span class="w">
-</span><span class="w">  </span>gateways<span class="p">:</span><span class="w">
-</span><span class="w">  </span>-<span class="w"> </span>foocorp-gateway<span class="w">
-</span><span class="w">  </span>http<span class="p">:</span><span class="w">
-</span><span class="w">  </span>-<span class="w"> </span>match<span class="p">:</span><span class="w">
-</span><span class="w">    </span>-<span class="w"> </span>uri<span class="p">:</span><span class="w">
-</span><span class="w">        </span>exact<span class="p">:</span><span class="w"> </span>/<span class="w">
-</span><span class="w">    </span>route<span class="p">:</span><span class="w">
-</span><span class="w">    </span>-<span class="w"> </span>destination<span class="p">:</span><span class="w">
-</span><span class="w">        </span>host<span class="p">:</span><span class="w"> </span>frontend.ux.svc.cluster.local<span class="w">
-</span><span class="w">        </span>port<span class="p">:</span><span class="w">
-</span><span class="w">          </span>number<span class="p">:</span><span class="w"> </span><span class="m">80</span><span class="w">
-</span><span class="w"></span>---<span class="w">
-</span><span class="w"></span>apiVersion<span class="p">:</span><span class="w"> </span>networking.istio.io/v1alpha3<span class="w">
-</span><span class="w"></span>kind<span class="p">:</span><span class="w"> </span>VirtualService<span class="w">
-</span><span class="w"></span>metadata<span class="p">:</span><span class="w">
-</span><span class="w">  </span>name<span class="p">:</span><span class="w"> </span>inventory<span class="w">
-</span><span class="w"></span>spec<span class="p">:</span><span class="w">
-</span><span class="w">  </span>hosts<span class="p">:</span><span class="w">
-</span><span class="w">  </span>-<span class="w"> </span><span class="s2">&#34;inventory.foocorp.com&#34;</span><span class="w">
-</span><span class="w">  </span>gateways<span class="p">:</span><span class="w">
-</span><span class="w">  </span>-<span class="w"> </span>foocorp-gateway<span class="w">
-</span><span class="w">  </span>http<span class="p">:</span><span class="w">
-</span><span class="w">  </span>-<span class="w"> </span>match<span class="p">:</span><span class="w">
-</span><span class="w">    </span>-<span class="w"> </span>uri<span class="p">:</span><span class="w">
-</span><span class="w">        </span>exact<span class="p">:</span><span class="w"> </span>/<span class="w">
-</span><span class="w">    </span>route<span class="p">:</span><span class="w">
-</span><span class="w">    </span>-<span class="w"> </span>destination<span class="p">:</span><span class="w">
-</span><span class="w">        </span>host<span class="p">:</span><span class="w"> </span>inventory.corp-services.svc.cluster.local<span class="w">
-</span><span class="w">        </span>port<span class="p">:</span><span class="w">
-</span><span class="w">          </span>number<span class="p">:</span><span class="w"> </span><span class="m">80</span><span class="w">
-</span></code></pre></div><p>Apply these YAML resources, then get the <code>istio-ingressgateway</code> pod logs for the <code>ingress-sds</code> container. You should see that when we applied a resource using specific credentials, the SDS agent mounted those certs and keys into the ingress proxy:</p>
-<div class="highlight"><pre class="chroma"><code class="language-bash" data-lang="bash">istio-ingressgateway-6f7d65d984-m2zmn ...
+</code></pre><p>これで、<code>frontend</code> と <code>inventory</code> をIstioリソースで公開する準備が整いました。まず、HTTPSトラフィック用にポート <code>443</code> の穴をあけるGatewayリソースを作成します。<code>mode: MUTUAL</code> は、内向きトラフィックに相互TLSを強制することを表すため注意して下さい。また、それぞれのサービスのために作成したSecretに対応する2つの異なる証明書のセットを指定します。</p><div class=highlight><pre class=chroma><code class=language-YAML data-lang=YAML><span class=k>apiVersion</span><span class=p>:</span><span class=w> </span>networking.istio.io/v1alpha3<span class=w>
+</span><span class=w></span><span class=k>kind</span><span class=p>:</span><span class=w> </span>Gateway<span class=w>
+</span><span class=w></span><span class=k>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span><span class=k>name</span><span class=p>:</span><span class=w> </span>foocorp-gateway<span class=w>
+</span><span class=w>  </span><span class=k>namespace</span><span class=p>:</span><span class=w> </span>default<span class=w>
+</span><span class=w></span><span class=k>spec</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span><span class=k>selector</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>    </span><span class=k>istio</span><span class=p>:</span><span class=w> </span>ingressgateway<span class=w> </span><span class=c># use istio default ingress gateway</span><span class=w>
+</span><span class=w>  </span><span class=k>servers</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span>- <span class=k>port</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>      </span><span class=k>number</span><span class=p>:</span><span class=w> </span><span class=m>443</span><span class=w>
+</span><span class=w>      </span><span class=k>name</span><span class=p>:</span><span class=w> </span>https-frontend<span class=w>
+</span><span class=w>      </span><span class=k>protocol</span><span class=p>:</span><span class=w> </span>HTTPS<span class=w>
+</span><span class=w>    </span><span class=k>tls</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>      </span><span class=k>mode</span><span class=p>:</span><span class=w> </span>MUTUAL<span class=w>
+</span><span class=w>      </span><span class=k>credentialName</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;frontend-credential&#34;</span><span class=w>
+</span><span class=w>    </span><span class=k>hosts</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>    </span>- <span class=s2>&#34;frontend.foocorp.com&#34;</span><span class=w>
+</span><span class=w>  </span>- <span class=k>port</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>      </span><span class=k>number</span><span class=p>:</span><span class=w> </span><span class=m>443</span><span class=w>
+</span><span class=w>      </span><span class=k>name</span><span class=p>:</span><span class=w> </span>https-inventory<span class=w>
+</span><span class=w>      </span><span class=k>protocol</span><span class=p>:</span><span class=w> </span>HTTPS<span class=w>
+</span><span class=w>    </span><span class=k>tls</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>      </span><span class=k>mode</span><span class=p>:</span><span class=w> </span>MUTUAL<span class=w>
+</span><span class=w>      </span><span class=k>credentialName</span><span class=p>:</span><span class=w> </span><span class=s2>&#34;inventory-credential&#34;</span><span class=w>
+</span><span class=w>    </span><span class=k>hosts</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>    </span>- <span class=s2>&#34;inventory.foocorp.com&#34;</span><span class=w>
+</span></code></pre></div><p>次に、ゲートウェイからのルーティングを処理する2つのIstioのVirtualServiceを作成します。両方のサービスがゲートウェイのポート <code>443</code> にマッピングされているため、<code>host</code> ヘッダー（またはドメイン名）を使用して、要求するバックエンドサービスを指定します。</p><div class=highlight><pre class=chroma><code class=language-YAML data-lang=YAML><span class=k>apiVersion</span><span class=p>:</span><span class=w> </span>networking.istio.io/v1alpha3<span class=w>
+</span><span class=w></span><span class=k>kind</span><span class=p>:</span><span class=w> </span>VirtualService<span class=w>
+</span><span class=w></span><span class=k>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span><span class=k>name</span><span class=p>:</span><span class=w> </span>frontend<span class=w>
+</span><span class=w></span><span class=k>spec</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span><span class=k>hosts</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span>- <span class=s2>&#34;frontend.foocorp.com&#34;</span><span class=w>
+</span><span class=w>  </span><span class=k>gateways</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span>- foocorp-gateway<span class=w>
+</span><span class=w>  </span><span class=k>http</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span>- <span class=k>match</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>    </span>- <span class=k>uri</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>        </span><span class=k>exact</span><span class=p>:</span><span class=w> </span>/<span class=w>
+</span><span class=w>    </span><span class=k>route</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>    </span>- <span class=k>destination</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>        </span><span class=k>host</span><span class=p>:</span><span class=w> </span>frontend.ux.svc.cluster.local<span class=w>
+</span><span class=w>        </span><span class=k>port</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>          </span><span class=k>number</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span><span class=w></span>---<span class=w>
+</span><span class=w></span><span class=k>apiVersion</span><span class=p>:</span><span class=w> </span>networking.istio.io/v1alpha3<span class=w>
+</span><span class=w></span><span class=k>kind</span><span class=p>:</span><span class=w> </span>VirtualService<span class=w>
+</span><span class=w></span><span class=k>metadata</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span><span class=k>name</span><span class=p>:</span><span class=w> </span>inventory<span class=w>
+</span><span class=w></span><span class=k>spec</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span><span class=k>hosts</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span>- <span class=s2>&#34;inventory.foocorp.com&#34;</span><span class=w>
+</span><span class=w>  </span><span class=k>gateways</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span>- foocorp-gateway<span class=w>
+</span><span class=w>  </span><span class=k>http</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>  </span>- <span class=k>match</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>    </span>- <span class=k>uri</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>        </span><span class=k>exact</span><span class=p>:</span><span class=w> </span>/<span class=w>
+</span><span class=w>    </span><span class=k>route</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>    </span>- <span class=k>destination</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>        </span><span class=k>host</span><span class=p>:</span><span class=w> </span>inventory.corp-services.svc.cluster.local<span class=w>
+</span><span class=w>        </span><span class=k>port</span><span class=p>:</span><span class=w>
+</span><span class=w></span><span class=w>          </span><span class=k>number</span><span class=p>:</span><span class=w> </span><span class=m>80</span><span class=w>
+</span></code></pre></div><p>これらのYAMLリソースを適用してから、<code>istio-ingressgateway</code> Pod内にある<code>ingress-sds</code> コンテナーのログを取得します。特定の証明書を使用してリソースを適用すると、SDSエージェントがそれらの証明書と鍵をIngressプロキシにマウントしたことがわかります。:</p><div class=highlight><pre class=chroma><code class=language-bash data-lang=bash>istio-ingressgateway-6f7d65d984-m2zmn ...
 RESOURCE NAME:inventory-credential, EVENT: pushed key/cert pair to proxy
-</code></pre></div><p>Now, we're ready to make requests to our two services from outside the cluster. Note that because we've configured mutual TLS, we have to specify <code>cert</code> and <code>key</code> in addition to <code>ca-cert</code>, in order for the server (the Ingress Gateway) to verify the identity of the client.</p>
-<p>First, from any host outside the cluster, curl the frontend, with the frontend client keys:</p>
-<pre><code>$ curl -HHost:frontend.foocorp.com \
+</code></pre></div><p>これで、クラスターの外部から2つのサービスにリクエストを送信する準備ができました。相互TLSを構成したので、サーバー（Ingress Gateway）がクライアントのIDを検証するために、<code>CA証明書</code> に加えて <code>証明書</code> と <code>鍵</code>を指定する必要があることに注意してください。</p><p>まず、クラスター外のホストから、frontendクライアント鍵を使用してfrontendにcurlでリクエストを送信します。：</p><pre><code>$ curl -HHost:frontend.foocorp.com \
 --resolve frontend.foocorp.com:$SECURE_INGRESS_PORT:$INGRESS_HOST \
 --cacert frontend.foocorp.com/2_intermediate/certs/ca-chain.cert.pem \
 --cert frontend.foocorp.com/4_client/certs/frontend.foocorp.com.cert.pem \
@@ -110,8 +83,7 @@ RESOURCE NAME:inventory-credential, EVENT: pushed key/cert pair to proxy
 https://frontend.foocorp.com:$SECURE_INGRESS_PORT/
 
 🏗 Welcome to FooCorp - Public Site
-</code></pre><p>And the internal inventory, with the inventory keys:</p>
-<pre><code>$ curl -HHost:inventory.foocorp.com \
+</code></pre><p>そして、内部のinventoryにinventoryのクライアント鍵を用いてアクセスします。：</p><pre><code>$ curl -HHost:inventory.foocorp.com \
 --resolve inventory.foocorp.com:$SECURE_INGRESS_PORT:$INGRESS_HOST \
 --cacert inventory.foocorp.com/2_intermediate/certs/ca-chain.cert.pem \
 --cert inventory.foocorp.com/4_client/certs/inventory.foocorp.com.cert.pem \
@@ -119,28 +91,4 @@ https://frontend.foocorp.com:$SECURE_INGRESS_PORT/
 https://inventory.foocorp.com:$SECURE_INGRESS_PORT/
 
 🛠 FooCorp - Inventory [INTERNAL]
-</code></pre><p>What's actually happening here? Let's look at the inventory service, and walk through exactly how the Ingress Gateway authenticates the client.</p>
-<p><a target="_blank" rel="noopener noreferrer" href="/images/secure-ingress-auth-steps.png"><img class="img" src="/images/secure-ingress-auth-steps.png"
-        alt/></a></p>
-<ol>
-<li>Client requests the host <code>https://inventory.foocorp.com:443</code></li>
-<li>DNS for <code>inventory.foocorp.com</code> resolves to the Istio Ingress Gateway's public IP, provisioned by default with a Kubernetes Service <code>type=LoadBalancer</code>. The Ingress Gateway presents its cert and key to the client.</li>
-<li>Client verifies the Ingress Gateway's identity with the Certificate Authority (CA).</li>
-<li>Client presents its cert and key to the Ingress Gateway.</li>
-<li>Server (Ingress Gateway) verifies client's identity with the CA.</li>
-<li>A secure connection is established between the client and the Ingress Gateway, and the Ingress Gateway forwards requests to the <code>inventory</code> Service.</li>
-</ol>
-<p>🎊 We did it! From here, you can keep adding new services, and scale out the Ingress Gateway replicas to support a secure, centrally-managed ingress for your cluster.</p>
-<p><strong>Learn More:</strong></p>
-<ul>
-<li><a href="https://istio.io/docs/concepts/traffic-management/#gateways"target="_blank">Istio Ingress Gateway - Concepts</a></li>
-<li><a href="https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-sds/#configure-a-tls-ingress-gateway-for-multiple-hosts"target="_blank">Istio SDS Ingress, server-side TLS only</a></li>
-<li><a href="https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-mount/#before-you-begin"target="_blank">Istio SDS Ingress, manual file-mount approach</a></li>
-</ul>
-</article>
-</div></div><section id="footer" class="footer max-body-width">
-    <p>Made with ❤️ by <a href="https://twitter.com/askmeegs">Megan O'Keefe</a> | <a href="https://github.com/askmeegs/istiobyexample">Source</a></p>
-</section></div>
-</body>
-
-</html>
+</code></pre><p>ここで実際に何が起こっているのでしょうか？inventoryサービスを見て、Ingress Gatewayがクライアントを認証する方法を正確に見ていきましょう。</p><p><a target=_blank rel="noopener noreferrer" href=../images/secure-ingress-auth-steps.png><img class=img src=../images/secure-ingress-auth-steps.png alt></a></p><ol><li>クライアントはホスト <code>https://inventory.foocorp.com:443</code> にリクエストを送信します。</li><li>DNSは <code>inventory.foocorp.com</code> を Istio Ingress Gateway のパブリックIPアドレスに名前解決します（Istio Ingress Gateway はデフォルトでKubernetes Service の <code>type = LoadBalancer</code> としてプロビジョニングされています）。Ingress Gatewayは証明書と鍵をクライアントに提示します。</li><li>クライアントは、Ingress GatewayのIDを認証局（CA）で検証します。</li><li>クライアントは、証明書と鍵をIngress Gatewayに提示します。</li><li>サーバー（Ingress Gateway）は、クライアントのIDをCAで検証します。</li><li>クライアントとIngress Gatewayの間で安全な接続が確立され、Ingress Gatewayがリクエストを <code>inventory</code> サービスに転送します。</li></ol><p>🎊できました！今後、新しいサービスを追加し続けることが可能となり、それに合わせて Ingress Gateway レプリカをスケールアウトできます。ご自身のクラスタは、セキュアで一元管理されたIngressを利用できます。</p><p><strong>詳しく学ぶ：</strong></p><ul><li><a href=https://istio.io/docs/concepts/traffic-management/#gateways target=_blank>Istio Ingress Gateway - コンセプト</a></li><li><a href=https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-sds/#configure-a-tls-ingress-gateway-for-multiple-hosts target=_blank>Istio SDS Ingress、サーバー側TLSのみ</a></li><li><a href=https://istio.io/docs/tasks/traffic-management/ingress/secure-ingress-mount/#before-you-begin target=_blank>Istio SDS Ingress、手動ファイルマウントアプローチ</a></li></ul></article></div><section id=footer class=footer><p>Made with ❤️ by <a href=https://twitter.com/askmeegs>Megan O'Keefe</a> | <a href=https://github.com/askmeegs/istiobyexample>Source</a> | <a href=https://github.com/cntrump/hugo-notepadium>Theme</a></p><p>Localized by <a href=https://github.com/istiobyexample-ja/istiobyexample>Istio by Example-ja Project</a></p></section></div></div></body></html>
